@@ -23,6 +23,10 @@ All data used (customer records, transaction records) is **synthetic and for edu
 
 Each week's folder contains a submission write-up (`weekN-submission.md`) plus any supporting code, notebooks, or artifacts produced that week.
 
+## Week 2 — What's Inside          
+
+Data preparation and quality assessment on the customer and transaction datasets, exploratory data analysis (visualisations against `Risk_Review_Flag`), 8+ engineered features, a baseline Logistic Regression model with evaluation (Accuracy, Precision, Recall, F1, ROC-AUC), model interpretation, and a Week 2 Project Documentation write-up.
+
 ## Track Objectives
 
 1. Define a supervised classification problem predicting the likelihood a transaction needs risk review.
@@ -34,7 +38,7 @@ Each week's folder contains a submission write-up (`weekN-submission.md`) plus a
 ## Status
 
 - [x] Week 1 — Understand & Plan
-- [ ] Week 2 — Analyse & Prepare
+- [x] Week 2 — Analyse & Prepare
 - [ ] Week 3 — Develop & Integrate
 - [ ] Week 4 — Test, Refine & Present
 
