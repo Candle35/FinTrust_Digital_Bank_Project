@@ -35,11 +35,22 @@ Data preparation and quality assessment on the customer and transaction datasets
 4. Build, tune and validate a baseline and candidate model, evaluated with metrics appropriate to an imbalanced target.
 5. Document assumptions, limitations and results clearly enough for portfolio-ready reporting.
 
+## What Week 3 builds on
+The notebook starts from the Week 2 prepared dataset and adds features on top of it. Section 2 reproduces the submitted Week 2 baseline exactly (balanced Logistic Regression, 12 features, random 80/20 split, threshold 0.50: accuracy 0.635, precision 0.289, recall 0.594, F1 0.389, ROC-AUC 0.668) and asserts that the reproduced numbers match.
+
+## Headline results (chronological test set, n = 2,400)
+- **Ranking quality is unchanged from Week 2:** ROC-AUC 0.672 for the candidate vs 0.676 for the Week 2 recipe (95% CI of the difference −0.022 to +0.015).
+- **At a fixed 20% review budget** the candidate reaches precision 0.360 / recall 0.366 vs 0.326 / 0.331 for Week 2 (bootstrap intervals exclude 0).
+- **Simpler and safer:** 5 inputs instead of 12; no look-ahead customer counts; no customer attributes.
+- `Transaction_Status` and `Account_Status` stay excluded (Week 2 decision); adding them would change test ROC-AUC by only about +0.002 and +0.001.
+- The F1-optimal threshold does not beat the Week 2 baseline on F1 (0.395 vs 0.406); the 20%-budget operating point is the recommended default.
+- Remaining errors are mostly label noise: every false negative has at most one risk signal.
+- The candidate was chosen by a pre-stated rule (simplest model within 0.01 of the best validation scores). Logistic Regression sits right on that boundary, so the choice is stated explicitly.
 ## Status
 
 - [x] Week 1 — Understand & Plan
 - [x] Week 2 — Analyse & Prepare
-- [ ] Week 3 — Develop & Integrate
+- [x] Week 3 — Develop & Integrate
 - [ ] Week 4 — Test, Refine & Present
 
 ## Disclaimer

@@ -1,0 +1,70 @@
+{
+  "model_selected": "Logistic Regression",
+  "selection_rule": "within 0.01 of best validation ROC-AUC and PR-AUC among core-feature models, then simplest/most explainable",
+  "eligible_models": [
+    "Logistic Regression",
+    "Random Forest",
+    "Gradient Boosting (HGB)"
+  ],
+  "best_hyperparameters": {
+    "C": 0.01
+  },
+  "features_used": {
+    "categorical": [
+      "Transaction_Type"
+    ],
+    "numeric": [
+      "log_amount",
+      "high_amount",
+      "is_international",
+      "is_night"
+    ]
+  },
+  "feature_engineering": {
+    "log_amount": "log1p(Amount_NGN)",
+    "high_amount": "Amount_NGN >= 142057.92 (train 90th percentile)",
+    "is_night": "hour between 0 and 5",
+    "is_international": "International_Transaction == 'Yes'"
+  },
+  "preprocessing": "OneHotEncoder(handle_unknown='ignore') for categoricals; StandardScaler for numerics (linear models); class_weight='balanced'",
+  "operating_points": {
+    "capacity_top20pct": {
+      "threshold": 0.6045900298173639,
+      "chosen_on": "validation 80th percentile of scores"
+    },
+    "f1_optimal_high_recall": {
+      "threshold": 0.38,
+      "chosen_on": "validation F1"
+    }
+  },
+  "split": {
+    "type": "chronological 60/20/20",
+    "train_to": "2026-02-23 23:55:00",
+    "valid_to": "2026-03-13 23:57:00",
+    "test_to": "2026-03-31 23:59:00"
+  },
+  "test_metrics_capacity_threshold": {
+    "Accuracy": 0.7525,
+    "Precision": 0.3596,
+    "Recall": 0.3658,
+    "F1": 0.3627,
+    "ROC_AUC": 0.6723,
+    "PR_AUC": 0.321,
+    "Threshold": 0.6046,
+    "Recall@top20%": 0.3701,
+    "Lift@top20%": 1.8506
+  },
+  "test_metrics_f1_threshold": {
+    "Accuracy": 0.5108,
+    "Precision": 0.2591,
+    "Recall": 0.829,
+    "F1": 0.3948,
+    "ROC_AUC": 0.6723,
+    "PR_AUC": 0.321,
+    "Threshold": 0.38,
+    "Recall@top20%": 0.3701,
+    "Lift@top20%": 1.8506
+  },
+  "seed": 42,
+  "sklearn_version": "1.9.0"
+}
