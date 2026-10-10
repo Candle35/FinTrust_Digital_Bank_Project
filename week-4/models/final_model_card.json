@@ -1,0 +1,194 @@
+{
+  "model_name": "FinTrust Risk-Review Prioritisation Model (Week 4 final)",
+  "model_type": "Week 4 LR (final features)",
+  "status": "Educational prototype on synthetic data - NOT a production banking system",
+  "target": "Risk_Review_Flag = Yes (synthetic educational label; NOT a fraud or financial-crime determination)",
+  "intended_use": "Rank transactions so that a limited manual-review budget is spent on the most likely flagged ones (decision support only)",
+  "not_intended_for": [
+    "fraud determination",
+    "automated blocking or declining of transactions",
+    "decisions about individual customers",
+    "use on real banking data without re-validation"
+  ],
+  "selection_rule": "More complex model replaces Logistic Regression only if paired-bootstrap 95% CI of the gain is above 0 on both ROC-AUC and PR-AUC (nested rolling-origin, n=7200)",
+  "features": {
+    "categorical": [
+      "Transaction_Type"
+    ],
+    "binary": [
+      "high_amount",
+      "is_international",
+      "is_night"
+    ],
+    "definitions": {
+      "high_amount": "Amount_NGN >= 160000 (learned on the training window by cut-off scan)",
+      "is_international": "International_Transaction == 'Yes'",
+      "is_night": "hour of Transaction_DateTime between 0 and 5 inclusive",
+      "Transaction_Type": "one of ['Airtime/Data', 'Bill Payment', 'Card Purchase', 'Cash Withdrawal', 'Deposit', 'Transfer']"
+    }
+  },
+  "excluded_on_purpose": [
+    "Transaction_Status (may not be known at decision time)",
+    "Account_Status",
+    "customer attributes (no signal; fairness)",
+    "Customer_Name and IDs",
+    "look-ahead customer counts"
+  ],
+  "hyperparameters": {
+    "C": 1
+  },
+  "preprocessing": "OneHotEncoder(handle_unknown='ignore') for Transaction_Type; binary flags passed through; class_weight='balanced'",
+  "operating_points": {
+    "budget_20pct": {
+      "raw_score_threshold": 0.5681031135991615,
+      "chosen_on": "80th percentile of validation scores"
+    },
+    "f1_optimal_high_recall": {
+      "raw_score_threshold": 0.35000000000000003,
+      "chosen_on": "validation F1"
+    }
+  },
+  "calibration": {
+    "method": "Platt (sigmoid) on logit(raw score), fitted on validation period",
+    "coef": 0.8397953758919405,
+    "intercept": -1.3096788161867383
+  },
+  "split": {
+    "type": "chronological 60/20/20",
+    "train_to": "2026-02-23 23:55:00",
+    "validation_to": "2026-03-13 23:57:00",
+    "test_to": "2026-03-31 23:59:00"
+  },
+  "metrics_holdout_budget20": {
+    "Accuracy": 0.7508,
+    "Precision": 0.3571,
+    "Recall": 0.368,
+    "F1": 0.3625,
+    "ROC_AUC": 0.6793,
+    "PR_AUC": 0.3251,
+    "Flagged_share": 0.1983,
+    "Threshold": 0.5681,
+    "Precision@top20%": 0.3542,
+    "Recall@top20%": 0.368,
+    "Lift@top20%": 1.8398
+  },
+  "metrics_holdout_f1_optimal": {
+    "Accuracy": 0.5167,
+    "Precision": 0.2616,
+    "Recall": 0.829,
+    "F1": 0.3977,
+    "ROC_AUC": 0.6793,
+    "PR_AUC": 0.3251,
+    "Flagged_share": 0.61,
+    "Threshold": 0.35,
+    "Precision@top20%": 0.3542,
+    "Recall@top20%": 0.368,
+    "Lift@top20%": 1.8398
+  },
+  "metrics_nested_rolling_origin": {
+    "ROC-AUC": "0.674 [0.658, 0.688]",
+    "PR-AUC": "0.339 [0.315, 0.359]",
+    "Precision@20%": "0.359 [0.335, 0.382]",
+    "Recall@20%": "0.359 [0.336, 0.383]"
+  },
+  "confusion_matrix_holdout_budget20": {
+    "TN": 1632,
+    "FP": 306,
+    "FN": 292,
+    "TP": 170
+  },
+  "input_contract": {
+    "required_columns": [
+      "Transaction_Type",
+      "Amount_NGN",
+      "International_Transaction",
+      "Transaction_DateTime"
+    ],
+    "rules": {
+      "Transaction_Type": "must be one of ['Airtime/Data', 'Bill Payment', 'Card Purchase', 'Cash Withdrawal', 'Deposit', 'Transfer']",
+      "Amount_NGN": "numeric and > 0",
+      "International_Transaction": "'Yes' or 'No'",
+      "Transaction_DateTime": "parseable timestamp"
+    },
+    "invalid_records": "rejected and routed to manual check - never silently scored"
+  },
+  "output_contract": [
+    "status",
+    "reason",
+    "n_signals",
+    "risk_score",
+    "flag_probability",
+    "review_flag",
+    "needs_manual_check"
+  ],
+  "limitations": [
+    "Synthetic target; associations only",
+    "Three-month window; no seasonality or drift assessment",
+    "Modest ceiling (ROC-AUC ~0.67): about two-thirds of flagged transactions are false alarms at a 20% budget",
+    "Scores tie (few distinct profiles)",
+    "High-amount cut-off and review budget are assumptions to re-estimate",
+    "Test period viewed in Week 3 and Week 4 (confirmation only)"
+  ],
+  "cross_track": {
+    "data_analytics": "dashboard (3 pages, screenshots) and SQL script received; values reconciled to raw data; used for comparison only; model unchanged",
+    "ml_engineering": "not received",
+    "generative_ai": "not received"
+  },
+  "seed": 42,
+  "versions": {
+    "python": "3.14.6",
+    "scikit-learn": "1.9.0",
+    "pandas": "3.0.3",
+    "numpy": "2.4.6"
+  },
+  "validation_evidence": {
+    "Shuffled-label test (10 shuffles)": {
+      "evidence": "mean test ROC-AUC 0.484 (range 0.413-0.582) vs real 0.679",
+      "result": "PASS - no signal is found when labels are random, so the real signal is not a leakage artefact"
+    },
+    "Split integrity": {
+      "evidence": "overlapping transaction IDs = 0; chronological ordering holds = True",
+      "result": "PASS"
+    },
+    "Customer memorisation (grouped vs random 5-fold CV)": {
+      "evidence": "0.677 vs 0.677",
+      "result": "PASS - no reliance on recognising customers"
+    },
+    "Stability over time (5 rolling windows)": {
+      "evidence": "ROC-AUC 0.674 +/- 0.010; range 0.659-0.686",
+      "result": "PASS - stable"
+    },
+    "High-amount cut-off stability": {
+      "evidence": "cut-off learned in each rolling window: [160000, 160000, 160000, 160000, 160000]; final: 160000",
+      "result": "PASS - same cut-off every window"
+    },
+    "Threshold stability (validation-chosen 20% threshold)": {
+      "evidence": "flags 20.4% of validation vs 19.8% of test; precision 0.363 -> 0.357",
+      "result": "PASS"
+    },
+    "Bootstrap uncertainty (hold-out, n = 2,400)": {
+      "evidence": "ROC-AUC 0.679 [0.652, 0.705]; precision@20% 0.357 [0.314, 0.401]; recall@20% 0.368 [0.325, 0.414]",
+      "result": "Reported - differences below ~0.03 ROC-AUC are not meaningful"
+    },
+    "Transaction_Status / Account_Status sensitivity": {
+      "evidence": "add Status: +0.0056 [+0.0015, +0.0096]; add Account_Status: -0.0003 [-0.0032, +0.0026]",
+      "result": "Quantified - Status excluded for deployment reasons, cost documented"
+    },
+    "Subgroup consistency (n = 7,200 out-of-time)": {
+      "evidence": "selection share 0.180-0.228; smallest attribute-level p = 0.444",
+      "result": "PASS - no evidence of differential selection"
+    },
+    "Model + calibrator reload": {
+      "evidence": "joblib reload reproduces test scores and calibrated probabilities exactly (Section 9.2)",
+      "result": "PASS"
+    },
+    "Raw-record scoring equivalence": {
+      "evidence": "validated scoring function on 2400 raw test records equals the evaluated pipeline: True",
+      "result": "PASS"
+    },
+    "Robustness tests on bad input": {
+      "evidence": "15/15 pass after refinement (7/15 before)",
+      "result": "PASS"
+    }
+  }
+}
